@@ -1,5 +1,6 @@
 # !/usr/bin/env python3
 # -*- coding:utf-8 -*-
+import numpy as np
 
 # @Time    : 2024/3/28 19:28
 # @Author  : wangchongshi
@@ -46,7 +47,7 @@ class SentimentKnowledge(Knowledge):
         )
         self.reader = ExcelReader()
         # Initialize the knowledge
-        # self.insert_knowledge()
+        self.insert_knowledge()
 
     def insert_knowledge(self, **kwargs) -> None:
         """
@@ -65,9 +66,14 @@ class SentimentKnowledge(Knowledge):
 
         # 循环遍历文件路径列表
         for file_path in excel_files:
-            # 加载单个文件的数据并添加到总文档列表中
-            sentiment_docs = self.reader.load_data(file_path)
-            all_sentiment_docs.extend(sentiment_docs)
+            # 加载单个文件的数据
+            df = self.reader.load_data(file_path)
+
+            # 分批次处理 DataFrame
+            for index, chunk in df.groupby(np.arange(len(df)) // 1000):  # 每 1000 行作为一个批次
+                # 处理每一批次的数据
+                sentiment_docs = self.process_chunk(chunk)
+                all_sentiment_docs.extend(sentiment_docs)
 
         # 使用文档分割器处理所有文档
         lc_doc_list = SPLITTER.split_documents(Document.as_langchain_list(all_sentiment_docs))
@@ -75,3 +81,16 @@ class SentimentKnowledge(Knowledge):
         # 将处理后的文档插入到存储中
         self.store.insert_documents(Document.from_langchain_list(lc_doc_list))
 
+    def process_chunk(self, chunk):
+        # 在这里处理每个批次的数据
+        # 对于每一行，创建一个文档对象，其中包含每一列的内容
+        docs = []
+        for _, row in chunk.iterrows():
+            # 创建一个字典来存储每一列的内容
+            content_dict = {col: str(row[col]) for col in chunk.columns}
+            # 将字典转换为字符串并用作 page_content 的值
+            page_content = "\n".join([f"{k}: {v}" for k, v in content_dict.items()])
+            doc = Document(page_content=page_content,
+                           metadata={'source': row['file_name'], 'sheet_name': row['sheet_name']})
+            docs.append(doc)
+        return docs
