@@ -1,0 +1,6 @@
+name: 'fs_knowledge'
+description: 'fs_knowledge'
+metadata:
+  type: 'KNOWLEDGE'
+  module: 'sample_standard_app.app.core.knowledge.fs_knowledge'
+  class: 'FsKnowledge'
