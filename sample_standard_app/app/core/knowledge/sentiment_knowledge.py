@@ -75,7 +75,7 @@ class SentimentKnowledge(Knowledge):
                     doc.embedding = embeddings[0]  # 获取嵌入结果的第一个元素
                     self.store.insert_documents([doc])
 
-    def process_chunk(self, chunk,file_name):
+    def process_chunk(self, chunk, file_name):
         """Process each chunk of data to create Document objects."""
         docs = []
         for _, row in chunk.iterrows():

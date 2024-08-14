@@ -11,12 +11,15 @@ import pandas as pd
 from agentuniverse.agent.action.knowledge.embedding.dashscope_embedding import DashscopeEmbedding
 from agentuniverse.agent.action.knowledge.embedding.openai_embedding import OpenAIEmbedding
 from agentuniverse.agent.action.knowledge.knowledge import Knowledge
+from agentuniverse.agent.action.knowledge.knowledge_manager import KnowledgeManager
 from agentuniverse.agent.action.knowledge.reader.file.excel_reader import ExcelReader
 from agentuniverse.agent.action.knowledge.reader.file.txt_reader import TxtReader
 from agentuniverse.agent.action.knowledge.store.chroma_store import ChromaStore
 from agentuniverse.agent.action.knowledge.store.document import Document
 from langchain.text_splitter import TokenTextSplitter
 from pathlib import Path
+
+from agentuniverse.base.agentuniverse import AgentUniverse
 
 SPLITTER = TokenTextSplitter(chunk_size=600, chunk_overlap=100)
 
@@ -53,13 +56,10 @@ class FsKnowledge(Knowledge):
 
     def insert_knowledge(self, **kwargs) -> None:
         """Load sentiment data from Excel files and store embeddings."""
-        folder_path = Path("../resources/fs")
+        folder_path = Path("../../resources/fs")
         excel_files = [f for f in folder_path.glob('*.xlsx') if f.is_file()]
 
         for file_path in excel_files:
-            # Load the Excel file
-            df = pd.read_excel(file_path, skiprows=3)  # Skip the first 3 rows of description
-
             # Store the description as metadata
             # description_df = pd.read_excel(file_path, nrows=3)  # Load the first 3 rows as description
             # description_content = description_df.to_string(index=False)
@@ -67,14 +67,13 @@ class FsKnowledge(Knowledge):
             #                            metadata={"file_name": file_path.name, "type": "description"})
             # self.store.insert_documents([description_doc])
             # 假设 file_path 是指向 Excel 文件的路径对象
-            description_file_path = file_path.with_suffix("[DES][xlsx].txt")
-
+            description_file_path = file_path.parent / f"{file_path.stem}[DES][xlsx].txt"
             # 加载描述文件内容
             txtReader = TxtReader()
-            dlist = txtReader.load_data(description_file_path, ext_info={"file_name": file_path.name, "type": "data"})
+            dlist = txtReader.load_data(Path(description_file_path), ext_info={"file_name": file_path.name, "type": "data"})
 
-            # 将 DataFrame 转换为字符串
-            description_content = dlist.to_string(index=False)
+            # 将所有 Document 对象的 text 字段拼接为一个字符串
+            description_content = "\n".join([doc.text for doc in dlist])
 
             # 生成描述文本的嵌入向量
             embedding = self.store.embedding_model.get_embeddings([description_content])
@@ -86,7 +85,8 @@ class FsKnowledge(Knowledge):
 
             # 插入描述文档到向量数据库
             self.store.insert_documents([description_doc])
-
+            # Load the Excel file
+            # df = pd.read_excel(file_path, skiprows=3)  # Skip the first 3 rows of description
             # # Process and insert data in chunks
             # for index, chunk in df.groupby(np.arange(len(df)) // 1000):
             #     sentiment_docs = self.process_chunk(chunk, file_path.name)
@@ -106,3 +106,10 @@ class FsKnowledge(Knowledge):
                            metadata={'source': file_name})
             docs.append(doc)
         return docs
+
+
+if __name__ == '__main__':
+    AgentUniverse().start(config_path='../../../config/config.toml')
+    fs_knowledge = KnowledgeManager().get_instance_obj("fs_knowledge")
+
+    fs_knowledge.insert_knowledge()
