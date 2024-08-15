@@ -56,15 +56,10 @@ class StockFactorKnowledge(Knowledge):
         excel_files = [f for f in folder_path.glob('*.xlsx') if f.is_file()]
 
         for file_path in excel_files:
+
+            self.save_desc(file_path)
             # Load the Excel file
             df = pd.read_excel(file_path, skiprows=3)  # Skip the first 3 rows of description
-
-            # Store the description as metadata
-            description_df = pd.read_excel(file_path, nrows=3)  # Load the first 3 rows as description
-            description_content = description_df.to_string(index=False)
-            description_doc = Document(test=description_content,
-                                       metadata={"file_name": file_path.name, "type": "description"})
-            self.store.insert_documents([description_doc])
 
             # Process and insert data in chunks
             for index, chunk in df.groupby(np.arange(len(df)) // 1000):
@@ -85,3 +80,32 @@ class StockFactorKnowledge(Knowledge):
                            metadata={'source': file_name})
             docs.append(doc)
         return docs
+
+    def save_desc(self, file_path: Path):
+
+        # Store the description as metadata
+        # description_df = pd.read_excel(file_path, nrows=3)  # Load the first 3 rows as description
+        # description_content = description_df.to_string(index=False)
+        # description_doc = Document(test=description_content,
+        #                            metadata={"file_name": file_path.name, "type": "description"})
+        # self.store.insert_documents([description_doc])
+
+        # 假设 file_path 是指向 Excel 文件的路径对象
+        description_file_path = file_path.parent / f"{file_path.stem}[DES][xlsx].txt"
+        # 加载描述文件内容
+        txtReader = TxtReader()
+        dlist = txtReader.load_data(Path(description_file_path), ext_info={"file_name": file_path.name, "type": "data"})
+
+        # 将所有 Document 对象的 text 字段拼接为一个字符串
+        description_content = "\n".join([doc.text for doc in dlist])
+
+        # 生成描述文本的嵌入向量
+        embedding = self.store.embedding_model.get_embeddings([description_content])
+
+        # 创建 Document 对象并包含生成的 embedding
+        description_doc = Document(text=description_content,
+                                   metadata={"file_name": file_path.name, "type": "description"},
+                                   embedding=embedding[0])  # embedding 返回的是列表，取第一个元素
+
+        # 插入描述文档到向量数据库
+        self.store.insert_documents([description_doc])

@@ -9,7 +9,7 @@ log_path = "./.test_log_dir"
 log_rotation = "100 MB"
 # Specifies the duration to keep old log files. It can be a time span (e.g., "30 days") or a function to filter the
 # files to be retained. Files outside this policy are purged.
-log_retention = "7 days"
+log_retention = "30 days"
 
 [LOG_CONFIG.EXTEND_MODULE]
 # Whether you use Aliyun Simple Log Service (SLS), if the value is "True", you should fill in the ALIYUN_SLS_CONFIG below.

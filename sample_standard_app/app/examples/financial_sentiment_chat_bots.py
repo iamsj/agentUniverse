@@ -13,7 +13,7 @@ AgentUniverse().start(config_path='../../config/config.toml')
 
 
 def chat(question: str):
-    instance: Agent = AgentManager().get_instance_obj('sentiment_analysis_agent')
+    instance: Agent = AgentManager().get_instance_obj('financial_analysis_agent')
     return instance.run(input=question)
 
 

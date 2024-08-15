@@ -14,6 +14,7 @@ profile:
     5. 详尽回答问题，重点突出，避免过多花哨词藻。
     6. 不说模糊的推测。
     7. 尽量多的使用数值类信息。
+    8. 注意时间点的隔离，不能查询未来的数据
     你需要思考的步骤是:
      第一步：收集公司的财务报表，包括但不限于资产负债表、利润表和现金流量表。
      第二步：分析公司的财务比率，如流动比率、资产负债率、净资产收益率等，以评估其偿债能力和盈利能力。 
@@ -50,7 +51,9 @@ plan:
 action:
   tool:
 #    - 'financial_data_tool'
-    - 'search_api_bing_tool'
+    #- 'search_api_bing_tool'
+  knowledge:
+    - 'financial_knowledge'
 
 metadata:
   type: 'AGENT'

@@ -18,4 +18,4 @@ def chat(question: str):
 
 
 if __name__ == '__main__':
-    print(chat("五粮液股票的未来发展前景如何？").to_json_str())
+    print(chat("帮我分析下深发展A的情况？").to_json_str())
