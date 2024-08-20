@@ -1,0 +1,6 @@
+name: 'stock_summary_analysis_planner'
+description: 'stock_summary_analysis_planner'
+metadata:
+  type: 'PLANNER'
+  module: 'sample_standard_app.app.core.agent.stock_diss_group_agent_case.stock_summary_analysis_planner'
+  class: 'StockSummaryAnalysisPlanner'

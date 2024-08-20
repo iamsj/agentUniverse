@@ -32,7 +32,6 @@ class DashscopeEmbedding(Embedding):
         default_factory=lambda: get_from_env("DASHSCOPE_API_KEY")
     )
 
-
     def get_embeddings(self, texts: List[str]) -> List[List[float]]:
         """
         Retrieve text embeddings for a list of input texts.
@@ -52,6 +51,7 @@ class DashscopeEmbedding(Embedding):
             Exception: If the API call to DashScope fails, an exception is raised with
                        the respective error code and message.
         """
+
         def post(post_params):
             response = requests.post(
                 url=DASHSCOPE_EMBEDDING_URL,
@@ -65,6 +65,7 @@ class DashscopeEmbedding(Embedding):
             )
             resp_json = response.json()
             return resp_json
+
         if not self.dashscope_api_key:
             raise Exception("No DASHSCOPE_API_KEY in your environment.")
         result = []
@@ -111,6 +112,7 @@ class DashscopeEmbedding(Embedding):
             Exception: If the API call to DashScope fails, an exception is raised with
                        the respective error code and message.
         """
+
         async def async_post(post_params):
             async with aiohttp.ClientSession() as session:
                 async with await session.post(
@@ -125,6 +127,7 @@ class DashscopeEmbedding(Embedding):
                 ) as resp:
                     resp_json = await resp.json()
             return resp_json
+
         if not self.dashscope_api_key:
             raise Exception("No DASHSCOPE_API_KEY in your environment.")
         result = []

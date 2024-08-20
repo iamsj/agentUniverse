@@ -4,7 +4,7 @@ info:
 profile:
   prompt_version: participant_agent.cn
   llm_model:
-    name: 'demo_llm'
+    name: 'default_ollama_llm'
     temperature: 0.3
 plan:
   planner:

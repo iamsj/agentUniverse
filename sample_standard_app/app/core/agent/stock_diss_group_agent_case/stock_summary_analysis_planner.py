@@ -22,7 +22,8 @@ from agentuniverse.prompt.prompt import Prompt
 from agentuniverse.prompt.prompt_manager import PromptManager
 from agentuniverse.prompt.prompt_model import AgentPromptModel
 
-class StockFactorAnalysisPlanner(Planner):
+
+class StockSummaryAnalysisPlanner(Planner):
     """Stock Factor Analysis planner class."""
 
     def invoke(self, agent_model: AgentModel, planner_input: dict, input_object: InputObject) -> dict:
@@ -97,4 +98,3 @@ class StockFactorAnalysisPlanner(Planner):
 
         # 构建并返回最终的 Prompt 对象
         return Prompt().build_prompt(profile_prompt_model, self.prompt_assemble_order)
-

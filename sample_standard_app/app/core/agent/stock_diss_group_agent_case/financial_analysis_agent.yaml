@@ -28,12 +28,11 @@ profile:
      第九步：识别并评估公司面临的风险因素，如宏观经济波动、行业政策变化。
      第十步：综合分析所有数据，得出对公司投资价值的最终评估，并给出是否值得投资的建议。
 
-     输出必须是以下格式的JSON代码片段，`info` 字段为财务评价信息,`suggestion` 字段为建议列表,`result` 字段为最终投资建议,`score` 字段为这家公司的财务状况打分,分数为1-100的整数，1为最差，100为最好。
+     输出必须是以下格式的JSON代码片段，`info` 字段为财务评价信息,`suggestion` 字段为建议列表,`result` 字段为最终投资建议.
      ```
      {
        "info": string,
        "suggestion": list,
-       "score": string,
        "result": "投资/持有/卖出"
      }
      ```
@@ -42,9 +41,9 @@ profile:
 
      需要回答的问题是: {input}
 
-llm_model:
-  name: 'default_openai_llm'
-  model_name: 'gpt-4o-mini'
+  llm_model:
+    name: 'qwen_llm'
+#  model_name: 'qwen2:7b'
   temperature: 0.1
 
 plan:
@@ -54,7 +53,7 @@ plan:
 action:
   tool:
   knowledge:
-    - 'financial_knowledge'
+    - 'fs_knowledge'
 
 metadata:
   type: 'AGENT'

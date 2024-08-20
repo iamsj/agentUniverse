@@ -1,0 +1,20 @@
+info:
+  name: 'stock_data_rag_agent'
+  description: 'demo rag agent'
+profile:
+  prompt_version: demo_rag_agent.cn
+  llm_model:
+#    name: 'default_ollama_llm'
+    model_name: 'qwen2'
+plan:
+  planner:
+    name: 'stock_g_peer_planner'
+action:
+  tool:
+    - 'google_search_tool'
+memory:
+  name: ''
+metadata:
+  type: 'AGENT'
+  module: 'sample_standard_app.app.core.agent.stock_data_agent_case.stock_data_rag_agent'
+  class: 'StockDataRagAgent'

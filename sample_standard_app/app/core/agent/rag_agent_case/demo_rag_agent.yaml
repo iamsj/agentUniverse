@@ -4,8 +4,8 @@ info:
 profile:
   prompt_version: demo_rag_agent.cn
   llm_model:
-    name: 'qwen_llm'
-#    model_name: 'gpt-4o'
+    name: 'default_ollama_llm'
+#    model_name: 'qwen2'
 plan:
   planner:
     name: 'rag_planner'

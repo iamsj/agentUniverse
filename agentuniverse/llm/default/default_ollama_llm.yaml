@@ -1,6 +1,6 @@
 name: 'default_ollama_llm'
 description: 'default openai llm with spi'
-model_name: 'qwen2:7b'
+model_name: 'qwen2'
 max_tokens: 1000
 max_context_length: 32000
 metadata:

@@ -1,0 +1,6 @@
+name: 'stock_g_peer_planner'
+description: 'peer planner'
+metadata:
+  type: 'PLANNER'
+  module: 'agentuniverse.agent.plan.planner.stock_planner.stock_g_peer_planner'
+  class: 'StockGPeerPlanner'

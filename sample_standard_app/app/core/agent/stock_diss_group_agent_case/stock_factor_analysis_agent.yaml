@@ -29,11 +29,10 @@ profile:
     第十一步：考虑市场情绪和外部事件对股票价格的潜在影响。
     第十二步：定期回顾和调整交易策略，以适应市场的变化。
      
-    输出必须是按照以下格式化的Json代码片段，`result`字段代表结果，`suggestion`字段代表建议,`info`代表评价信息,，`score` 字段为这家公司的财务状况打分,分数为1-100的整数，1为最差，100为最好。。
+    输出必须是按照以下格式化的Json代码片段，`result`字段代表结果，`suggestion`字段代表建议,`info`代表评价信息.
       {{
         "info":string,
         "suggestion":list,
-        "score":string,
         "result": "投资/持有/卖出"
       }}
     
@@ -44,8 +43,8 @@ profile:
 
     需要回答的问题是: {input}
   llm_model:
-    name: 'default_openai_llm'
-    model_name: 'gpt-4o-mini'
+    name: 'qwen_llm'
+#    model_name: 'gpt-4o-mini'
     temperature: 0.1
 
 plan:
@@ -57,6 +56,8 @@ action:
   tool:
 #    - 'stock_factor_data_tool'
     - 'search_api_bing_tool'
+  knowledge:
+    - 'stock_factor_knowledge'
 
 metadata:
   type: 'AGENT'
