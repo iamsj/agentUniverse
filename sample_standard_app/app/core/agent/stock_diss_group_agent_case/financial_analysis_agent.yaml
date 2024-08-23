@@ -28,13 +28,13 @@ profile:
      第九步：识别并评估公司面临的风险因素，如宏观经济波动、行业政策变化。
      第十步：综合分析所有数据，得出对公司投资价值的最终评估，并给出是否值得投资的建议。
 
-     输出必须是以下格式的JSON代码片段，`info` 字段为财务评价信息,`suggestion` 字段为建议列表,`result` 字段为最终投资建议.
+     输出必须是以下格式的JSON代码片段，info字段为财务评价信息,suggestion字段为建议列表,result字段为最终投资建议.
      ```
-     {
+     {{
        "info": string,
        "suggestion": list,
        "result": "投资/持有/卖出"
-     }
+     }}
      ```
      背景信息是:
      {background}
@@ -51,7 +51,6 @@ plan:
     name: 'rag_planner'
 
 action:
-  tool:
   knowledge:
     - 'fs_knowledge'
 

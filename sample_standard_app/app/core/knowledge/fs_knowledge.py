@@ -143,25 +143,3 @@ class FsKnowledge(Knowledge):
         # 将每个有效的文档插入到向量数据库
         self.store.insert_documents(Document.from_langchain_list(valid_lc_doc_list))
 
-
-if __name__ == '__main__':
-    AgentUniverse().start(config_path='../../../config/config.toml')
-    # fs_knowledge = KnowledgeManager().get_instance_obj("fs_knowledge")
-    #
-    # # fs_knowledge.insert_knowledge()
-    #
-    # stock_knowledge = KnowledgeManager().get_instance_obj("stock_factor_knowledge")
-    # #
-    # # stock_knowledge.insert_knowledge()
-    # #
-    # sentiment_knowledge = KnowledgeManager().get_instance_obj("sentiment_knowledge")
-    #
-    # sentiment_knowledge.insert_knowledge()
-    with ThreadPoolExecutor(max_workers=3) as executor:
-        future1 = executor.submit(KnowledgeManager().get_instance_obj, "fs_knowledge")
-        future2 = executor.submit(KnowledgeManager().get_instance_obj, "stock_factor_knowledge")
-        future3 = executor.submit(KnowledgeManager().get_instance_obj, "sentiment_knowledge")
-
-        fs_knowledge = future1.result()
-        stock_knowledge = future2.result()
-        sentiment_knowledge = future3.result()

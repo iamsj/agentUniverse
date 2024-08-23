@@ -5,8 +5,11 @@
 # @Email   : lc299034@antgroup.com
 # @FileName: peer_planner.py
 """Peer planner module."""
+import json
 from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError
 from typing import Any
+
+from langchain_core.utils.json import parse_json_markdown
 
 from agentuniverse.agent.action.tool.tool_manager import ToolManager
 from agentuniverse.agent.agent_manager import AgentManager
@@ -21,7 +24,7 @@ default_sub_agents = {
     'financial_expert': 'financial_analysis_agent',
     'intelligence_expert': 'intelligence_analysis_agent',
     'stock_factor_expert': 'stock_factor_analysis_agent',
-    'summary_expert': 'demo_reviewing_agent',
+    'summary_expert': 'ReviewingAgent',  # 确保总结专家使用的是 ReviewingAgent
 }
 
 default_retry_count = 2
@@ -72,7 +75,7 @@ class StockGPeerPlanner(Planner):
             agent: The agent instance.
             input_object (InputObject): The input parameters.
         Returns:
-            dict: The result from the expert agent.
+            OutputObject: The result from the expert agent.
         """
         try:
             return agent.run(**input_object.to_dict())
@@ -93,7 +96,8 @@ class StockGPeerPlanner(Planner):
         Returns:
             dict: The planner result.
         """
-        result: dict = dict()
+        #final_result = {'suggestions': [], 'final_decision': '不投资'}
+        final_result = {'suggestions': [], 'final_decision': '不投资'}  # 确保 'suggestions' 已初始化为列表
         retry_count = planner_config.get('retry_count', default_retry_count)
         eval_threshold = planner_config.get('eval_threshold', default_eval_threshold)
         timeout = planner_config.get('timeout', default_timeout)
@@ -103,39 +107,130 @@ class StockGPeerPlanner(Planner):
             'financial_expert': OutputObject({}),
             'intelligence_expert': OutputObject({}),
             'stock_factor_expert': OutputObject({}),
-            'summary_expert': OutputObject({})
         }
 
         # Create a thread pool executor for concurrent execution
-        with ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=3) as executor:
             future_to_expert = {}
             for expert_name, expert_agent in agents.items():
-                # Submit tasks to the executor
-                for attempt in range(retry_count):
+                if expert_name != 'summary_expert':
+                    # Submit task to the executor (initial attempt)
                     future = executor.submit(self.run_expert, expert_name, expert_agent, input_object)
-                    future_to_expert[future] = expert_name
-                    LOGGER.info(f"Submitted task for {expert_name}, attempt {attempt + 1}")
+                    future_to_expert[future] = (expert_name, 0)  # Track attempts
 
             # Collect results as they complete
-            for future in as_completed(future_to_expert):
-                expert_name = future_to_expert[future]
+            while future_to_expert:
+                for future in as_completed(future_to_expert):
+                    expert_name, attempt = future_to_expert[future]
+                    try:
+                        result_obj = future.result(timeout=timeout)
+                        results[expert_name] = result_obj
+                        LOGGER.info(f"{expert_name} completed with result: {result_obj.to_dict()}")
+                        future_to_expert.pop(future)  # Task completed successfully
+                    except TimeoutError:
+                        LOGGER.warning(f"{expert_name} did not respond within timeout.")
+                        if attempt < retry_count:
+                            # Resubmit task for retry
+                            new_future = executor.submit(self.run_expert, expert_name, agents[expert_name],
+                                                         input_object)
+                            future_to_expert[new_future] = (expert_name, attempt + 1)
+                            LOGGER.info(f"Retrying {expert_name}, attempt {attempt + 2}")
+                        else:
+                            results[expert_name] = OutputObject({})  # Mark as failed due to timeout
+                            future_to_expert.pop(future)
+                    except Exception as e:
+                        LOGGER.error(f"Error retrieving result for {expert_name}: {e}")
+                        if attempt < retry_count:
+                            # Resubmit task for retry
+                            new_future = executor.submit(self.run_expert, expert_name, agents[expert_name],
+                                                         input_object)
+                            future_to_expert[new_future] = (expert_name, attempt + 1)
+                            LOGGER.info(f"Retrying {expert_name}, attempt {attempt + 2}")
+                        else:
+                            results[expert_name] = OutputObject({})  # Mark as failed due to error
+                            future_to_expert.pop(future)
+
+        # # Verify if summary_expert exists and is correctly instantiated before running it
+        # if 'summary_expert' not in agents or agents['summary_expert'] is None:
+        #     LOGGER.error("Cannot run summary_expert: summary_expert is not instantiated.")
+        #     return {"error": "summary_expert instantiation failed"}
+        #
+        # summary_input = InputObject({
+        #     'input': agent_input.get('input'),
+        #     'expressing_result': OutputObject(results)
+        # })
+        #
+        # summary_expert = agents['summary_expert']
+        # summary_result = self.run_expert('summary_expert', summary_expert, summary_input)
+        #
+        # if summary_result.get_data('score') and summary_result.get_data('score') >= eval_threshold:
+        #     result['result'] = summary_result.to_dict()
+        # else:
+        #     result['result'] = {
+        #         key: val.to_dict() for key, val in results.items() if key != 'summary_expert'
+        #     }
+
+        # Initialize score variables
+        score = 0
+        # Define score mappings
+        score_mapping = {
+            '投资': 1,
+            '持有': 0,
+            '不投资': -1
+        }
+
+        for expert_name, result_obj in results.items():
+            suggestion = result_obj.get_data('output')  # 获取专家建议
+            final_result['suggestions'].append({expert_name: suggestion})
+            # Ensure output_json is not None before parsing
+            output_json = None
+            if suggestion is not None:
                 try:
-                    result_obj = future.result(timeout=timeout)  # Set timeout for each expert
-                    results[expert_name] = result_obj
-                    LOGGER.info(f"{expert_name} completed with result: {result_obj.to_dict()}")
-                except TimeoutError:
-                    LOGGER.warning(f"{expert_name} did not respond within timeout.")
-                    results[expert_name] = OutputObject({})  # Mark as failed due to timeout
+                    output_json = parse_json_markdown(suggestion)
                 except Exception as e:
-                    LOGGER.error(f"Error retrieving result for {expert_name}: {e}")
+                    LOGGER.error(f"Failed to parse JSON markdown for {expert_name}: {e}")
 
-        # Process summary expert results
-        summary_result = results.get('summary_expert')
-        if summary_result.get_data('score') and summary_result.get_data('score') >= eval_threshold:
-            result['result'] = results
+            # Use a try-except block to catch any exceptions when accessing output_json
+            try:
+                if output_json is not None:
+                    result = output_json.get('result')
+                    # Update total score based on suggestion
+                    score += score_mapping.get(result, -1)
+            except Exception as e:
+                LOGGER.error(f"An error occurred while processing output_json for {expert_name}: {e}")
+
+        if score == 2:
+            final_result['final_decision'] = '投资'
         else:
-            result['result'] = {
-                key: val for key, val in results.items() if key != 'summary_expert'
-            }
+            final_result['final_decision'] = '不投资'
 
-        return result
+        final_result_output = {'output': final_result}
+
+        return final_result_output
+
+
+def determine_final_decision(results):
+    """
+    Determine the final investment decision based on expert recommendations.
+
+    :param results: List of dictionaries containing expert recommendations
+    :return: Final investment decision as a string
+    """
+    # Initialize counts
+    investment_count = 0
+    hold_count = 0
+
+    # Count the number of each type of recommendation
+    for result in results:
+        if result['result'] == '投资':
+            investment_count += 1
+        elif result['result'] == '持有':
+            hold_count += 1
+
+    # Determine the final decision
+    if investment_count == 3:
+        return '投资'
+    elif investment_count == 2 and hold_count == 1:
+        return '投资'
+    else:
+        return '不投资'

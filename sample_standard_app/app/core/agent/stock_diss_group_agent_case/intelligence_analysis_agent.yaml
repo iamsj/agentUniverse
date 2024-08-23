@@ -24,14 +24,14 @@ profile:
     第五步：结合市场情绪分析和宏观经济因素，评估公司在市场中的风险和机会。
     第六步：根据市场情绪和趋势，判断目标公司是否值得继续持有、增持或卖出。
 
-    输出必须是以下格式的JSON代码片段，`info` 字段为财务评价信息,`suggestion` 字段为建议列表,`result` 字段为最终投资建议.
-     ```
-     {
+    输出必须是以下格式的JSON代码片段，info字段为财务评价信息,suggestion字段为建议列表,result字段为最终投资建议.
+    ```
+     {{
        "info": string,
        "suggestion": list,
        "result": "投资/持有/卖出"
-     }
-     ```
+     }}
+    ```
      背景信息是:
      {background}
 
@@ -48,8 +48,6 @@ plan:
     name: 'rag_planner'
 
 action:
-#  tool:
-#    - 'market_intelligence_tool'
   knowledge:
     - 'sentiment_knowledge'
 

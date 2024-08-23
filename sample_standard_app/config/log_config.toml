@@ -6,7 +6,7 @@ log_level = "INFO"
 log_path = "./.test_log_dir"
 # Specifies the log rotation policy, controlling when a new log file is created. It can be a time period
 # (e.g., "1 week"), a file size (e.g., "100 MB"), or a function returning True when rotation should occur.
-log_rotation = "100 MB"
+log_rotation = "300 MB"
 # Specifies the duration to keep old log files. It can be a time span (e.g., "30 days") or a function to filter the
 # files to be retained. Files outside this policy are purged.
 log_retention = "30 days"

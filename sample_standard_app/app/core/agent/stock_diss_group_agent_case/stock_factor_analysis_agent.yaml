@@ -29,13 +29,14 @@ profile:
     第十一步：考虑市场情绪和外部事件对股票价格的潜在影响。
     第十二步：定期回顾和调整交易策略，以适应市场的变化。
      
-    输出必须是按照以下格式化的Json代码片段，`result`字段代表结果，`suggestion`字段代表建议,`info`代表评价信息.
+    输出必须是按照以下格式化的Json代码片段，result字段代表结果，suggestion字段代表建议,info代表评价信息.
+    ```
       {{
         "info":string,
         "suggestion":list,
         "result": "投资/持有/卖出"
       }}
-    
+    ```
     背景信息是:
     {background}
 
@@ -53,9 +54,6 @@ plan:
     name: 'rag_planner'
 
 action:
-  tool:
-#    - 'stock_factor_data_tool'
-    - 'search_api_bing_tool'
   knowledge:
     - 'stock_factor_knowledge'
 
